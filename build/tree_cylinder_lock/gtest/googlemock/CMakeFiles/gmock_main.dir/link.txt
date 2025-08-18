@@ -1,0 +1,1 @@
+/usr/lib/ccache/g++ -fPIC   -shared -Wl,-soname,libgmock_main.so -o ../lib/libgmock_main.so CMakeFiles/gmock_main.dir/src/gmock_main.cc.o  -Wl,-rpath,/home/johnyeap01/pcl_ws/build/tree_cylinder_lock/gtest/lib ../lib/libgmock.so ../lib/libgtest.so -lpthread 

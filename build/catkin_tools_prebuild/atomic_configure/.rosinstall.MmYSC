@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/johnyeap01/pcl_ws/devel/.private/catkin_tools_prebuild/setup.sh

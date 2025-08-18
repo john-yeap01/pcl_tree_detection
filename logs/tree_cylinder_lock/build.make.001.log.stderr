@@ -1,0 +1,8 @@
+[01m[K/home/johnyeap01/pcl_ws/src/tree_cylinder_lock/src/cylinder_segmentation.cpp:10:10:[m[K [01;31m[Kfatal error: [m[Kpcl/segmentation/sac_segmentation_from_normals.h: No such file or directory
+   10 | #include [01;31m[K<pcl/segmentation/sac_segmentation_from_normals.h>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+make[2]: *** [CMakeFiles/cylinder_segmentation.dir/build.make:63: CMakeFiles/cylinder_segmentation.dir/src/cylinder_segmentation.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:252: CMakeFiles/cylinder_segmentation.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [Makefile:141: all] Error 2

@@ -1,0 +1,6 @@
+devel_space: /home/johnyeap01/pcl_ws/devel
+install: false
+install_space: /home/johnyeap01/pcl_ws/install
+profile: default
+source_space: /home/johnyeap01/pcl_ws/src
+workspace: /home/johnyeap01/pcl_ws
