@@ -25,9 +25,9 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-# One simple node (we’ll grow it step-by-step)
-add_executable(cylinder_segmentation src/cylinder_segmentation.cpp)
-target_link_libraries(cylinder_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(cylinder_pcd_node src/cylinder_pcd_node.cpp)
 target_link_libraries(cylinder_pcd_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(forest_cylinder_node src/forest_cylinder_node.cpp)
+target_link_libraries(forest_cylinder_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})

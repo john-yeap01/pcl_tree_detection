@@ -1,6 +1,7 @@
 <launch>
   <node pkg="tree_cylinder_lock" type="cylinder_pcd_node" name="cylinder_pcd_node" output="screen">
     <param name="pcd_path" value="$(env HOME)/pcl_cylinder_demo/table_scene_mug_stereo_textured.pcd"/>
+    <!-- <param name="pcd_path" value="$(env HOME)/pcl_cylinder_demo/forest2.pcd"/> -->
     <param name="frame_id" value="map"/>
     <param name="z_min" value="0.0"/>
     <param name="z_max" value="1.5"/>
