@@ -1,8 +1,0 @@
-prefix=/home/johnyeap01/pcl_ws/install
-
-Name: tree_cylinder_lock
-Description: Description of tree_cylinder_lock
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

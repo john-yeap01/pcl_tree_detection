@@ -1,1 +1,0 @@
-/usr/lib/ccache/g++ -fPIC   -shared -Wl,-soname,libgtest_main.so -o ../lib/libgtest_main.so CMakeFiles/gtest_main.dir/src/gtest_main.cc.o  -Wl,-rpath,/home/johnyeap01/pcl_ws/build/tree_cylinder_lock/gtest/lib ../lib/libgtest.so -lpthread 
