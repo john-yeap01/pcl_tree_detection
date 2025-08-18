@@ -1,0 +1,15 @@
+build/
+devel/
+logs/
+*.swp
+*.user
+*.code-workspace
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+*.pcd
+*.bag
+.DS_Store
+EOF
+
