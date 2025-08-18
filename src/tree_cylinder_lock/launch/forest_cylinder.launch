@@ -1,0 +1,35 @@
+<launch>
+  <node pkg="tree_cylinder_lock" type="forest_cylinder_node" name="forest_cyl" output="screen">
+    <param name="pcd_path" value="/home/johnyeap01/pcl_cylinder_demo/forest2.pcd" />
+    <param name="frame_id" value="map" />
+    <!-- Focus around breast height -->
+    <param name="z_min" value="0.6" />
+    <param name="z_max" value="2.2" />
+
+    <!-- Downsample & denoise -->
+    <param name="voxel_leaf" value="0.03" />
+    <param name="use_sor" value="true" />
+    <param name="sor_mean_k" value="24" />
+    <param name="sor_std" value="1.5" />
+
+    <!-- Normals: radius search -->
+    <param name="normal_radius" value="0.25" />
+
+    <!-- Cylinder RANSAC -->
+    <param name="cyl_weight" value="0.08" />
+    <!-- rule of thumb: cyl_dist ≈ 1.0–1.5 × voxel_leaf -->
+    <param name="cyl_dist" value="0.045" />
+    <param name="cyl_iter" value="40000" />
+    <param name="radius_min" value="0.03" />
+    <param name="radius_max" value="0.60" />
+
+    <!-- Axis prior (allow some tilt) -->
+    <param name="eps_angle_deg" value="35.0" />
+
+    <!-- Multi-detect -->
+    <param name="max_cylinders" value="25" />
+    <param name="min_inliers" value="150" />
+
+    <param name="use_plane_removal" value="false" />
+  </node>
+</launch>
