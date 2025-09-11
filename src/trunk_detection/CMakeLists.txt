@@ -32,3 +32,6 @@ include_directories(
 
 add_executable(cloud_accumulator src/cloud_accumulator.cpp)
 target_link_libraries(cloud_accumulator ${catkin_LIBRARIES})
+
+add_executable(cloud_snapshot src/cloud_snapshot.cpp)
+target_link_libraries(cloud_snapshot ${catkin_LIBRARIES})

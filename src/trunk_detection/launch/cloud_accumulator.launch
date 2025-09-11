@@ -8,4 +8,8 @@
     <param name="buffer_duration" value="$(arg buffer_duration)"/>
     <param name="publish_rate" value="$(arg publish_rate)"/>
   </node>
+
+    <node pkg="trunk_detection" type="trunk_marker" name="trunk_marker" output="screen"/>
+
+
 </launch>
