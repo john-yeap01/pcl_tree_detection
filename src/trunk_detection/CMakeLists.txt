@@ -30,8 +30,8 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-add_executable(cloud_accumulator src/cloud_accumulator.cpp)
-target_link_libraries(cloud_accumulator ${catkin_LIBRARIES})
+add_executable(cloud_processing src/cloud_processing.cpp)
+target_link_libraries(cloud_processing ${catkin_LIBRARIES})
 
 add_executable(cloud_snapshot src/cloud_snapshot.cpp)
 target_link_libraries(cloud_snapshot ${catkin_LIBRARIES})
