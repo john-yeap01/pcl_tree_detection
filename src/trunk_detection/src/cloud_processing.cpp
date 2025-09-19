@@ -97,10 +97,10 @@ private:
 class PipelineNode {
 public:
   PipelineNode(ros::NodeHandle& nh, ros::NodeHandle& pnh) : nh_(nh), pnh_(pnh) {
-    passthrough_.reset(new PassthroughStage(0.0f, 2.0f, false));
-    clustering_.reset(new ClusteringStage(0.12f, 300, 250000));
+    passthrough_.reset(new PassthroughStage(-0.5f, 5.0f, false));
+    clustering_.reset(new ClusteringStage(0.5f, 30, 10000));
 
-    sub_          = nh_.subscribe("/detect/fsm_node_detect/rog_map/occ", 1, &PipelineNode::cb, this);
+    sub_          = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &PipelineNode::cb, this);
     pub_clusters_ = nh_.advertise<sensor_msgs::PointCloud2>("/slice_clusters", 1, false);
   }
 
@@ -128,6 +128,8 @@ private:
       merged->insert(merged->end(), c->begin(), c->end());
     }
     merged->width = merged->size(); merged->height = 1; merged->is_dense = true;
+
+    ROS_INFO_STREAM("[clusters] merged cloud points = " << merged->size());
 
     // 4) publish one topic with all clusters (no RGB)
     sensor_msgs::PointCloud2 m;

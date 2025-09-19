@@ -3,11 +3,11 @@
   <arg name="buffer_duration" default="3.0"/>
   <arg name="publish_rate" default="1.0"/>
 
-  <node pkg="trunk_detection" type="cloud_accumulator" name="cloud_accumulator" output="screen">
+  <!-- <node pkg="trunk_detection" type="cloud_accumulator" name="cloud_accumulator" output="screen">
     <param name="cloud_topic" value="$(arg cloud_topic)"/>
     <param name="buffer_duration" value="$(arg buffer_duration)"/>
     <param name="publish_rate" value="$(arg publish_rate)"/>
-  </node>
+  </node> -->
 
   <node pkg="trunk_detection" type="cloud_processing" name="cloud_processing" output="screen"/>
   
