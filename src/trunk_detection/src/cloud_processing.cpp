@@ -1,7 +1,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/Point.h>
-#include <visualization_msgs/Marker.h>
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/Pose.h>
 
 #include <Eigen/Core>
 #include <pcl/point_types.h>
@@ -102,12 +103,14 @@ public:
   PipelineNode(ros::NodeHandle& nh, ros::NodeHandle& pnh) : nh_(nh), pnh_(pnh) {
     
     // change the passthrough height here to crop out the tree leaves if necessary 
-    passthrough_.reset(new PassthroughStage(-0.5f, 10.0f, false));
+    // passthrough_.reset(new PassthroughStage(-0.5f, 10.0f, false));
+    passthrough_.reset(new PassthroughStage(-0.5f, 5.0f, false));
+
     clustering_.reset(new ClusteringStage(0.5f, 30, 10000));
 
     sub_          = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &PipelineNode::cb, this);
     pub_clusters_ = nh_.advertise<sensor_msgs::PointCloud2>("/cluster_cloud", 1, false);
-    pub_markers_ = nh_.advertise<visualization_msgs::Marker>("/cluster_tops", 1);
+    pub_trunk_poses_ = nh_.advertise<geometry_msgs::PoseArray>("/cluster_poses", 1);
   }
 
 private:
@@ -125,23 +128,10 @@ private:
     clustering_->apply(slice, largest);
     const auto& all = clustering_->clusters();
 
-      //CREATE MARKER  LIST TO FILL WITH TOP POINTS
-      visualization_msgs::Marker marker;
-      marker.header.frame_id = msg->header.frame_id;    // same frame as your point cloud
-      marker.header.stamp    = ros::Time::now();
-      marker.ns = "cluster_tops";
-      marker.id = 0;
-      marker.type = visualization_msgs::Marker::POINTS;
-      marker.action = visualization_msgs::Marker::ADD;
-
-      // size of each dot (meters)
-      marker.scale.x = 0.2;    // width
-      marker.scale.y = 0.2;    // height
-      // color (opaque red)
-      marker.color.r = 1.0;
-      marker.color.g = 0.2;
-      marker.color.b = 0.2;
-      marker.color.a = 1.0;
+      // POSE ARRAY 
+      geometry_msgs::PoseArray trunk_poses;
+      trunk_poses.header.frame_id = msg->header.frame_id;
+      trunk_poses.header.stamp = msg->header.stamp;
 
     // FOR EACH CLUSTER
     for (const auto& c: all){
@@ -150,6 +140,7 @@ private:
       PointT top_point;
 
       // FOR EACH POINT IN EACH CLUSTER 
+      // find the top z point. 
       for (const PointT& point: c->points){
         if (point.z > max_z){
           max_z = point.z;
@@ -163,18 +154,24 @@ private:
       q.z = top_point.z;
 
       ROS_INFO_STREAM("Cluster top z: " << max_z << " located at " << top_point.x << ", " << top_point.y);
-    
 
 
-      // marker.lifetime = ros::Duration(0.3);
 
-
-      marker.points.push_back(q);
+      geometry_msgs::Pose pose;
+      pose.position.x = top_point.x;
+      pose.position.y = top_point.y;
+      pose.position.z = top_point.z;
+      pose.orientation.x = 0.0;
+      pose.orientation.y = 0.0;
+      pose.orientation.z = 0.0;
+      pose.orientation.w = 1.0;
+      trunk_poses.poses.push_back(pose);
       
-
+      
     }
 
-    pub_markers_.publish(marker);
+
+    pub_trunk_poses_.publish(trunk_poses);
 
     // 3) merge ALL clusters into one PointXYZ cloud
     CloudT::Ptr merged(new CloudT);
@@ -198,7 +195,8 @@ private:
   ros::NodeHandle nh_, pnh_;
   ros::Subscriber sub_;
   ros::Publisher  pub_clusters_;
-  ros::Publisher pub_markers_;
+  ros::Publisher  pub_trunk_poses_;
+
   std::shared_ptr<PassthroughStage> passthrough_;
   std::shared_ptr<ClusteringStage>  clustering_;
 };
