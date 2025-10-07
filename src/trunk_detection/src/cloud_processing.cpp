@@ -5,6 +5,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <Eigen/Core>
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/passthrough.h>
@@ -12,6 +13,7 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/filters/filter.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/common/centroid.h>
 
 using PointT = pcl::PointXYZ;
 using CloudT = pcl::PointCloud<PointT>;
@@ -104,7 +106,7 @@ public:
     
     // change the passthrough height here to crop out the tree leaves if necessary 
     // passthrough_.reset(new PassthroughStage(-0.5f, 10.0f, false));
-    passthrough_.reset(new PassthroughStage(-0.5f, 5.0f, false));
+    passthrough_.reset(new PassthroughStage(-0.5f, 2.0f, false));
 
     clustering_.reset(new ClusteringStage(0.5f, 30, 10000));
 
