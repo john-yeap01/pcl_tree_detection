@@ -5,6 +5,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -15,14 +16,30 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/common/centroid.h>
 
+#include <pcl/filters/crop_box.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_eigen/tf2_eigen.h>
+
 using PointT = pcl::PointXYZ;
 using CloudT = pcl::PointCloud<PointT>;
 
-// ---- Stage base ----
+// forward box extents in BODY frame (meters)
+static constexpr float X_NEAR = 0.3f;   // start a bit ahead of the nose
+static constexpr float X_FAR  = 10.0f;   // how far forward
+static constexpr float Y_HALF = 10.0f;   // left/right half-width
+static constexpr float Z_MIN  = -10.0f;  // below body origin
+static constexpr float Z_MAX  =  10.0f;  // above body origin
+
+// ---- da base class ----
 class Stage {
 public:
   virtual void apply(const CloudT::ConstPtr& in, CloudT::Ptr& out) = 0;
   virtual ~Stage() {}
+};
+
+class CropboxStage : public Stage {
+public:
 };
 
 // ---- Z slice ----
@@ -30,6 +47,7 @@ class PassthroughStage : public Stage {
 public:
   PassthroughStage(float zmin, float zmax, bool negative=false)
   : zmin_(zmin), zmax_(zmax), negative_(negative) {}
+
   void apply(const CloudT::ConstPtr& in, CloudT::Ptr& out) override {
     pcl::PassThrough<PointT> pass;
     pass.setInputCloud(in);
@@ -70,6 +88,7 @@ public:
     clusters_.reserve(idxs.size());
     centroids_.reserve(idxs.size());
 
+    // merge clusters into one point cloud 
     for (size_t i = 0; i < idxs.size(); ++i) {
       const auto& vi = idxs[i].indices;
       CloudT::Ptr c(new CloudT);
@@ -84,7 +103,7 @@ public:
       if (vi.size() > best_sz) { best_sz = vi.size(); best_idx = i; }
     }
 
-    // keep largest in 'out' for quick debug
+    // keep largest cluster as 'out' for quick debug
     *out = *clusters_[best_idx];
   }
 
@@ -98,81 +117,63 @@ private:
   pcl::search::KdTree<PointT>::Ptr tree_{new pcl::search::KdTree<PointT>};
 };
 
-
-// ---- Node: slice + cluster, publish al clusters merged on one topic ----
+// ---- Node: slice + cluster, publish all clusters merged on one topic ----
 class PipelineNode {
 public:
   PipelineNode(ros::NodeHandle& nh, ros::NodeHandle& pnh) : nh_(nh), pnh_(pnh) {
-    
     // change the passthrough height here to crop out the tree leaves if necessary 
-    // passthrough_.reset(new PassthroughStage(-0.5f, 10.0f, false));
-    passthrough_.reset(new PassthroughStage(-0.5f, 2.0f, false));
+    passthrough_.reset(new PassthroughStage(0.2f, 10.0f, false));
+    // passthrough_.reset(new PassthroughStage(-0.5f, 2.0f, false));
 
     clustering_.reset(new ClusteringStage(0.5f, 30, 10000));
 
-    sub_          = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &PipelineNode::cb, this);
-    pub_clusters_ = nh_.advertise<sensor_msgs::PointCloud2>("/cluster_cloud", 1, false);
+    // sub_             = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &PipelineNode::cb, this);
+    sub_             = nh_.subscribe("/cropped_cloud", 1, &PipelineNode::cb, this);
+
+    pub_clusters_    = nh_.advertise<sensor_msgs::PointCloud2>("/cluster_cloud", 1, false);
     pub_trunk_poses_ = nh_.advertise<geometry_msgs::PoseArray>("/cluster_poses", 1);
   }
 
 private:
   void cb(const sensor_msgs::PointCloud2ConstPtr& msg) {
+    if (world_frame_ != msg->header.frame_id) world_frame_ = msg->header.frame_id;
+
     CloudT::Ptr full(new CloudT);
     pcl::fromROSMsg(*msg, *full);
     std::vector<int> drop; pcl::removeNaNFromPointCloud(*full, *full, drop);
 
-    // 1) make the Z slice
+    
+
+    // 1) make the Z slice (apply after crop)
     CloudT::Ptr slice(new CloudT);
     passthrough_->apply(full, slice);
+    ROS_INFO_STREAM("slice=" << slice->size());
 
     // 2) cluster the slice
     CloudT::Ptr largest(new CloudT);
     clustering_->apply(slice, largest);
     const auto& all = clustering_->clusters();
+    const std::vector<Eigen::Vector2f> trunk_centroids = clustering_->centroids();
+    ROS_INFO_STREAM("Number of clusters, centroids: " << all.size() << " " << trunk_centroids.size());
 
-      // POSE ARRAY 
-      geometry_msgs::PoseArray trunk_poses;
-      trunk_poses.header.frame_id = msg->header.frame_id;
-      trunk_poses.header.stamp = msg->header.stamp;
+    // POSE ARRAY 
+    geometry_msgs::PoseArray trunk_poses;
+    trunk_poses.header.frame_id = msg->header.frame_id;
+    trunk_poses.header.stamp = msg->header.stamp;
 
-    // FOR EACH CLUSTER
-    for (const auto& c: all){
-      if (!c || c->empty()) continue;
-      float max_z = -std::numeric_limits<float>::infinity();
-      PointT top_point;
-
-      // FOR EACH POINT IN EACH CLUSTER 
-      // find the top z point. 
-      for (const PointT& point: c->points){
-        if (point.z > max_z){
-          max_z = point.z;
-          top_point = point;
-        }
-      }
-
-      geometry_msgs::Point q;
-      q.x = top_point.x;
-      q.y = top_point.y;
-      q.z = top_point.z;
-
-      ROS_INFO_STREAM("Cluster top z: " << max_z << " located at " << top_point.x << ", " << top_point.y);
-
-
-
+    for (const auto& c2d : trunk_centroids) {
       geometry_msgs::Pose pose;
-      pose.position.x = top_point.x;
-      pose.position.y = top_point.y;
-      pose.position.z = top_point.z;
+      pose.position.x = c2d.x();
+      pose.position.y = c2d.y();
+      pose.position.z = 3.0;
       pose.orientation.x = 0.0;
       pose.orientation.y = 0.0;
       pose.orientation.z = 0.0;
       pose.orientation.w = 1.0;
       trunk_poses.poses.push_back(pose);
-      
-      
     }
 
-
+    // These poses will be accepted by another node to transform into markers for vizualisation
     pub_trunk_poses_.publish(trunk_poses);
 
     // 3) merge ALL clusters into one PointXYZ cloud
@@ -201,6 +202,12 @@ private:
 
   std::shared_ptr<PassthroughStage> passthrough_;
   std::shared_ptr<ClusteringStage>  clustering_;
+
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_{tf_buffer_};
+
+  std::string world_frame_ = "world";
+  std::string body_frame_  = "body";
 };
 
 int main(int argc, char** argv) {

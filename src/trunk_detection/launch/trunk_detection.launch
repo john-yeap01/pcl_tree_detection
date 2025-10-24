@@ -11,6 +11,7 @@
 
   <node pkg="trunk_detection" type="cloud_processing" name="cloud_processing" output="screen"/>
   
+  <node pkg="trunk_detection" type="cloud_cropped" name="cloud_cropped" output="screen"/>
 
 
 </launch>

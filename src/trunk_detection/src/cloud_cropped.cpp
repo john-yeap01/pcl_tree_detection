@@ -67,23 +67,23 @@ private:
 };
 
 class Node {
-public:
-  Node(ros::NodeHandle& nh, ros::NodeHandle& pnh)
-  // ---- MINIMAL CHANGE 1: give TF buffer a deeper cache ----
-  : nh_(nh), pnh_(pnh), buffer_(ros::Duration(10.0)), tf_listener_(buffer_) {
-    pnh_.param<std::string>("target_frame", target_frame_, std::string("base_link"));
+  public:
+    Node(ros::NodeHandle& nh, ros::NodeHandle& pnh)
+    // ---- MINIMAL CHANGE 1: give TF buffer a deeper cache ----
+    : nh_(nh), pnh_(pnh), buffer_(ros::Duration(10.0)), tf_listener_(buffer_) {
+      pnh_.param<std::string>("target_frame", target_frame_, std::string("base_link"));
 
-    box_.reset(new CropboxStage(0, 10, -5, 5, -3, 10));
+      box_.reset(new CropboxStage(0, 10, -5, 5, -3, 10));
 
-    sub_cloud_   = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &Node::cb, this);
-    pub_cropped_ = nh_.advertise<sensor_msgs::PointCloud2>("cropped_cloud", 1, false);
+      sub_cloud_   = nh_.subscribe("/fsm_high/fsm_node_high/rog_map/occ", 1, &Node::cb, this);
+      pub_cropped_ = nh_.advertise<sensor_msgs::PointCloud2>("/cropped_cloud", 1, false);
 
-    // ---- MINIMAL CHANGE 2: init last-known transform ----
-    A_WB_last_.setIdentity();
-    have_tf_ = false;
+      // ---- MINIMAL CHANGE 2: init last-known transform ----
+      A_WB_last_.setIdentity();
+      have_tf_ = false;
 
-    ROS_INFO_STREAM("Cropbox target_frame=" << target_frame_);
-  }
+      ROS_INFO_STREAM("Cropbox target_frame=" << target_frame_);
+    }
 
 private:
   void cb(const sensor_msgs::PointCloud2ConstPtr& msg) {
