@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Subscribes to clusters and then plots the orbit points and executes them
 import rospy
 from geometry_msgs.msg import PoseArray, PoseStamped
 from mavros_msgs.msg import State
