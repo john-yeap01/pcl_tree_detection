@@ -1,4 +1,7 @@
 // file: cloud_snapshot.cpp
+// Listens to a live point cloud topic (e.g. /cloud_registered)
+// Saves the first point cloud it receives
+// Then publishes that same cloud repeatedly at a fixed rate (like a frozen “snapshot” of the scene)
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 

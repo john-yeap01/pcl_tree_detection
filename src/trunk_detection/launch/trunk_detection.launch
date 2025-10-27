@@ -13,5 +13,6 @@
   
   <node pkg="trunk_detection" type="cloud_cropped" name="cloud_cropped" output="screen"/>
 
+  <node pkg="trunk_detection" type="fit_cyl" name="fit_cyl" output="screen"/>
 
 </launch>

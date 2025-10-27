@@ -38,9 +38,6 @@ public:
   virtual ~Stage() {}
 };
 
-class CropboxStage : public Stage {
-public:
-};
 
 // ---- Z slice ----
 class PassthroughStage : public Stage {
